@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parking Center</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Parking Center</h1>
+    <nav id="tabs">
+      <button data-tab="dashboard" class="active">Panel</button>
+      <button data-tab="stays">Vehículos dentro</button>
+      <button data-tab="vehicles">Abonados y listas</button>
+      <button data-tab="devices">Dispositivos</button>
+      <button data-tab="lanes">Carriles y zonas</button>
+      <button data-tab="settings">Tarifas y acceso</button>
+      <button data-tab="reports">Informes</button>
+    </nav>
+    <span id="live" class="pill">● desconectado</span>
+  </header>
+
+  <main>
+    <section id="dashboard" class="tab active">
+      <div class="grid kpis" id="kpis"></div>
+      <h2>Carriles</h2>
+      <div class="grid" id="lane-cards"></div>
+      <h2>Eventos en tiempo real</h2>
+      <table><thead><tr><th>Hora</th><th>Tipo</th><th>Matrícula</th><th>Carril</th><th>Decisión</th><th>Motivo</th></tr></thead>
+        <tbody id="events"></tbody></table>
+    </section>
+
+    <section id="stays" class="tab">
+      <div class="toolbar"><input id="stay-search" placeholder="Buscar matrícula…"><button id="stay-refresh">Actualizar</button></div>
+      <table><thead><tr><th>Matrícula</th><th>Tipo</th><th>Zona</th><th>Entrada</th><th>Tiempo</th><th>Pendiente</th><th></th></tr></thead>
+        <tbody id="stay-rows"></tbody></table>
+    </section>
+
+    <section id="vehicles" class="tab">
+      <form id="vehicle-form" class="card form-row">
+        <input name="plate" placeholder="Matrícula" required>
+        <input name="owner" placeholder="Titular">
+        <select name="category"><option value="subscriber">Abonado</option><option value="whitelist">Lista blanca</option><option value="blacklist">Lista negra</option></select>
+        <label>Desde <input type="date" name="valid_from"></label>
+        <label>Hasta <input type="date" name="valid_to"></label>
+        <input name="notes" placeholder="Notas">
+        <button>Guardar</button>
+      </form>
+      <table><thead><tr><th>Matrícula</th><th>Titular</th><th>Categoría</th><th>Validez</th><th>Notas</th><th></th></tr></thead>
+        <tbody id="vehicle-rows"></tbody></table>
+    </section>
+
+    <section id="devices" class="tab">
+      <form id="device-form" class="card form-row">
+        <input name="id" placeholder="ID (p. ej. cam-entrada)" required>
+        <input name="name" placeholder="Nombre" required>
+        <select name="driver" id="driver-select"></select>
+        <input name="host" placeholder="IP / host">
+        <input name="port" type="number" placeholder="Puerto">
+        <input name="username" placeholder="Usuario" autocomplete="off">
+        <input name="password" type="password" placeholder="Contraseña" autocomplete="new-password">
+        <input name="channel" type="number" placeholder="Canal" value="1">
+        <input name="options" placeholder='Opciones JSON, p. ej. {"openUrl":"http://…"}' class="wide">
+        <button>Guardar</button>
+      </form>
+      <p class="hint" id="driver-help"></p>
+      <p class="hint">Configura en cada equipo el envío de eventos HTTP a <code id="ingest-url"></code></p>
+      <table><thead><tr><th>ID</th><th>Nombre</th><th>Fabricante</th><th>Dirección</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="device-rows"></tbody></table>
+    </section>
+
+    <section id="lanes" class="tab">
+      <h2>Zonas</h2>
+      <form id="zone-form" class="card form-row">
+        <input name="id" placeholder="ID" required><input name="name" placeholder="Nombre" required>
+        <input name="capacity" type="number" placeholder="Plazas" required><button>Guardar</button>
+      </form>
+      <table><thead><tr><th>ID</th><th>Nombre</th><th>Plazas</th><th></th></tr></thead><tbody id="zone-rows"></tbody></table>
+      <h2>Carriles</h2>
+      <form id="lane-form" class="card form-row">
+        <input name="id" placeholder="ID" required><input name="name" placeholder="Nombre" required>
+        <select name="direction"><option value="entry">Entrada</option><option value="exit">Salida</option></select>
+        <label>Cámara <select name="camera_device_id" class="device-select"></select></label>
+        <label>Barrera <select name="barrier_device_id" class="device-select"></select></label>
+        <label>Zona <select name="zone_id" id="zone-select"></select></label>
+        <button>Guardar</button>
+      </form>
+      <table><thead><tr><th>ID</th><th>Nombre</th><th>Sentido</th><th>Cámara</th><th>Barrera</th><th>Zona</th><th></th></tr></thead><tbody id="lane-rows"></tbody></table>
+    </section>
+
+    <section id="settings" class="tab">
+      <form id="settings-form" class="card settings">
+        <fieldset><legend>Tarifa</legend>
+          <label>Minutos de cortesía <input type="number" name="tariff.graceMinutes"></label>
+          <label>Fracción (min) <input type="number" name="tariff.blockMinutes"></label>
+          <label>Precio por fracción (céntimos) <input type="number" name="tariff.pricePerBlockCents"></label>
+          <label>Máximo diario (céntimos) <input type="number" name="tariff.dailyCapCents"></label>
+          <label>Minutos para salir tras pagar <input type="number" name="tariff.exitGraceMinutes"></label>
+        </fieldset>
+        <fieldset><legend>Control de acceso</legend>
+          <label><input type="checkbox" name="access.allowVisitors"> Permitir visitantes (rotación)</label>
+          <label><input type="checkbox" name="access.antiPassback"> Anti-passback</label>
+          <label><input type="checkbox" name="access.openOnUnpaidExit"> Abrir salida aunque no haya pagado</label>
+          <label>Ignorar lecturas repetidas (s) <input type="number" name="access.duplicateReadSeconds"></label>
+        </fieldset>
+        <button>Guardar configuración</button>
+      </form>
+    </section>
+
+    <section id="reports" class="tab">
+      <div class="toolbar"><label>Desde <input type="date" id="rep-from"></label><label>Hasta <input type="date" id="rep-to"></label><button id="rep-run">Consultar</button></div>
+      <div class="grid kpis" id="rep-kpis"></div>
+    </section>
+  </main>
+  <div id="toast"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
